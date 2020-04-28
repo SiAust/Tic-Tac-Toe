@@ -10,18 +10,34 @@ public class Main {
     private static char[][] field;
 
     public static void main(String[] args) {
+        field = new char[][]{new char[]{GAP, GAP, GAP}
+                , new char[]{GAP, GAP, GAP}
+                , new char[]{GAP, GAP, GAP}};
+
+        System.out.print("Would you like to continue a game? [y/n] : ");
+        String input;
+        if ((input = sc.nextLine()).toLowerCase().equals("y")) {
+            inputField();
+        }
+
         createMap();
-        System.out.print("Enter cells: ");
-        char[] input = sc.nextLine().toCharArray();
-
-        field = new char[][]{new char[]{input[0], input[1], input[2]}
-                , new char[]{input[3], input[4], input[5]}
-                , new char[]{input[6], input[7], input[8]}};
-
+        // inputField();
         printField();
-        playTurn();
 
-//        checkState(field);
+        // game loop
+        char player = X;
+        while (checkState(field)) {
+            playTurn(player);
+            switch (player) {
+                case X:
+                    player = O;
+                    break;
+                case O:
+                    player = X;
+                    break;
+            }
+        }
+
     }
 
     private static void createMap() {
@@ -44,6 +60,16 @@ public class Main {
     */
     }
 
+    private static void inputField() {
+        System.out.print("Enter cells: ");
+        char[] input = sc.nextLine().toUpperCase().toCharArray();
+
+        field = new char[][]{new char[]{input[0], input[1], input[2]}
+                , new char[]{input[3], input[4], input[5]}
+                , new char[]{input[6], input[7], input[8]}};
+
+    }
+
     private static void printField() {
         System.out.println("---------");
         for (char[] chars : field) {
@@ -63,7 +89,7 @@ public class Main {
         System.out.println("---------");
     }
 
-    private static void playTurn() {
+    private static void playTurn(char pMarker) {
         String[] input;
         final int[] noCoord = {9, 9};  /* values which don't match any coordinate */
         int[] coord = {9, 9};
@@ -80,10 +106,9 @@ public class Main {
                         // workaround for Map equality check of Key int[] / value int[]
                         String[] converStr = coordMap.get(String.valueOf(coord[0]) + String.valueOf(coord[1])).split("");
                         coord = new int[]{Integer.parseInt(converStr[0]), Integer.parseInt(converStr[1])};
-                        // todo if coordinates out of bounds blah
-                        // if there is a gap in the field, place an 'X' at that coordinate
+                         /* if there is a gap in the field, place an player marker at that coordinate */
                         if (field[coord[0]][coord[1]] == GAP) {
-                            field[coord[0]][coord[1]] = X;
+                            field[coord[0]][coord[1]] = pMarker;
                             printField();
                         } else {
                             System.out.println("This cell is occupied! Choose another one!");
@@ -109,7 +134,7 @@ public class Main {
         return coord[0] < 4 && coord[0] > 0 && coord[1] < 4 && coord[1] > 0;
     }
 
-    private static void checkState(char[][] field) {
+    private static boolean checkState(char[][] field) {
         Set<Character> winningChar = new HashSet<>();
 
         int countX = 0;
@@ -167,17 +192,20 @@ public class Main {
         // if field has 2 or more of x, or o, than the other. When X and O both have 3 in a row
         if (countX - countO >= 2 || countO - countX >= 2 || winningChar.size() > 1) {
             System.out.println("Impossible");
+            return false;
         }
 
         if (win) {
             System.out.println(winningChar.toString().replaceAll("[\\[\\]]", "") + " wins");
+            return false;
         }
 
         // if not a win then check draw
         if (countGap == 0) {
             System.out.println("Draw");
+            return false;
         } else { // if no draw the game is not finished
-            System.out.println("Game not finished");
+            return true;
         }
     }
 }
