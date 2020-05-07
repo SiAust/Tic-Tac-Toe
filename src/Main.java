@@ -1,22 +1,23 @@
 import java.util.*;
 
 public class Main {
-    private static Scanner sc = new Scanner(System.in);
+
+    private static final Scanner sc = new Scanner(System.in);
     private static final char X = 'X';
     private static final char O = 'O';
     private static final char GAP = '_';
-    private static final Map<String, String> coordMap = new HashMap<>();
+    private static final Map<Key, Value> coordMap = new HashMap<>();
 
     private static char[][] field;
 
     public static void main(String[] args) {
         field = new char[][]{new char[]{GAP, GAP, GAP}
-                , new char[]{GAP, GAP, GAP}
-                , new char[]{GAP, GAP, GAP}};
+                            , new char[]{GAP, GAP, GAP}
+                            , new char[]{GAP, GAP, GAP}};
 
+        /* Ask user if they would like to continue a game, entering the game field in the next step */
         System.out.print("Would you like to continue a game? [y/n] : ");
-        String input;
-        if ((input = sc.nextLine()).toLowerCase().equals("y")) {
+        if ((sc.nextLine()).toLowerCase().equals("y")) {
             inputField();
         }
 
@@ -41,19 +42,21 @@ public class Main {
     }
 
     private static void createMap() {
-        coordMap.put("13", "00");
-        coordMap.put("23", "01");
-        coordMap.put("33", "02");
 
-        coordMap.put("12", "10");
-        coordMap.put("22", "11");
-        coordMap.put("32", "12");
+        coordMap.put(new Key(1,3), new Value(0, 0));
+        coordMap.put(new Key(2,3), new Value(0, 1));
+        coordMap.put(new Key(3,3), new Value(0, 2));
 
-        coordMap.put("11", "20");
-        coordMap.put("21", "21");
-        coordMap.put("31", "22");
+        coordMap.put(new Key(1,2), new Value(1, 0));
+        coordMap.put(new Key(2,2), new Value(1, 1));
+        coordMap.put(new Key(3,2), new Value(1, 2));
 
-    /* Element mapping for matrix
+        coordMap.put(new Key(1,1), new Value(2, 0));
+        coordMap.put(new Key(2,1), new Value(2, 1));
+        coordMap.put(new Key(3,1), new Value(2, 2));
+
+    /*
+        Element mapping for matrix
         (1, 3) (2, 3) (3, 3) // [0][0] [0][1] [0][2]
         (1, 2) (2, 2) (3, 2) // [1][0] [1][1] [1][2]
         (1, 1) (2, 1) (3, 1) // [2][0] [2][1] [2][2]
@@ -67,7 +70,6 @@ public class Main {
         field = new char[][]{new char[]{input[0], input[1], input[2]}
                 , new char[]{input[3], input[4], input[5]}
                 , new char[]{input[6], input[7], input[8]}};
-
     }
 
     private static void printField() {
@@ -103,9 +105,8 @@ public class Main {
                         coord[i] = Integer.parseInt(input[i]);
                     }
                     if (checkBounds(coord)) {
-                        // workaround for Map equality check of Key int[] / value int[]
-                        String[] converStr = coordMap.get(String.valueOf(coord[0]) + String.valueOf(coord[1])).split("");
-                        coord = new int[]{Integer.parseInt(converStr[0]), Integer.parseInt(converStr[1])};
+                        Value value = coordMap.get(new Key(coord[0], coord[1]));
+                        coord = value.toIntArray();
                          /* if there is a gap in the field, place an player marker at that coordinate */
                         if (field[coord[0]][coord[1]] == GAP) {
                             field[coord[0]][coord[1]] = pMarker;
@@ -124,7 +125,7 @@ public class Main {
                 } else { // only one input else
                     System.out.println("You should enter numbers!");
                 }
-            } catch (Exception e) { // invalid input else
+            } catch (Exception e) { // invalid input exception
                 System.out.println("You should enter numbers!");
             }
         }
@@ -207,5 +208,74 @@ public class Main {
         } else { // if no draw the game is not finished
             return true;
         }
+    }
+}
+
+/* Key and Value classes to allow int[] objects in a Map properly by overriding equals() and hashCode() */
+
+class Key {
+    int[] key = new int[2];
+
+    public Key(int one, int two){
+        this.key[0] = one;
+        this.key[1] = two;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Key)) {
+            return false;
+        }
+        Key otherKey = (Key) obj;
+        return key[0] == otherKey.key[0] && key[1] == otherKey.key[1];
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17; // any prime number
+        result = 31 * result + Integer.valueOf(this.key[0]).hashCode();
+        result = 31 * result + Integer.valueOf(this.key[1]).hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "keys[0] " + key[0] + " keys[1] " + key[1];
+    }
+}
+
+class Value {
+    int[] values = new int[2];
+
+    public Value(int one, int two) {
+        this.values[0] = one;
+        this.values[1] = two;
+    }
+
+    public int[] toIntArray() {
+        return new int[]{values[0], values[1]};
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Value)) {
+            return false;
+        }
+        Value otherValue = (Value) obj;
+        return values[0] == otherValue.values[0] && values[1] == otherValue.values[1];
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17; // any prime number
+        result = 31 * result + Integer.valueOf(this.values[0]).hashCode();
+        result = 31 * result + Integer.valueOf(this.values[1]).hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "values[0] " + values[0] + " values[1] " + values[1];
     }
 }
